@@ -2,7 +2,7 @@
  * Main.
  */
 /*
- * My name is Erich and Cameron.
+ * My name is just Erich.
  */
 #include <types.h>
 #include <kern/errno.h>

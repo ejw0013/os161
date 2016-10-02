@@ -111,17 +111,15 @@ sfs_fs.o: ../../fs/sfs/sfs_fs.c ../../include/types.h machine/types.h \
   ../../include/uio.h ../../include/dev.h ../../include/sfs.h \
   ../../include/vnode.h ../../include/fs.h ../../include/kern/sfs.h \
   ../../include/vfs.h
-dumbvm.o: ../../arch/mips/mips/dumbvm.c ../../include/types.h \
-  machine/types.h ../../include/kern/types.h ../../include/kern/errno.h \
-  ../../include/lib.h machine/setjmp.h ../../include/thread.h \
-  machine/pcb.h ../../include/curthread.h ../../include/addrspace.h \
-  ../../include/vm.h machine/vm.h opt-dumbvm.h machine/spl.h \
-  machine/tlb.h
 sfs_io.o: ../../fs/sfs/sfs_io.c ../../include/types.h machine/types.h \
   ../../include/kern/types.h ../../include/kern/errno.h \
   ../../include/lib.h machine/setjmp.h ../../include/uio.h \
   ../../include/sfs.h ../../include/vnode.h ../../include/fs.h \
   ../../include/kern/sfs.h ../../include/dev.h
+addrspace.o: ../../vm/addrspace.c ../../include/types.h machine/types.h \
+  ../../include/kern/types.h ../../include/kern/errno.h \
+  ../../include/lib.h machine/setjmp.h ../../include/addrspace.h \
+  ../../include/vm.h machine/vm.h opt-dumbvm.h
 cache_mips1.o: ../../arch/mips/mips/cache_mips1.S machine/asmdefs.h
 exception.o: ../../arch/mips/mips/exception.S machine/asmdefs.h \
   machine/specialreg.h
@@ -343,6 +341,6 @@ fstest.o: ../../test/fstest.c ../../include/types.h machine/types.h \
   ../../include/synch.h ../../include/fs.h ../../include/vnode.h \
   ../../include/vfs.h ../../include/uio.h ../../include/test.h \
   ../../include/thread.h machine/pcb.h
-autoconf.o: ../../compile/ASST0/autoconf.c ../../include/types.h \
+autoconf.o: ../../compile/ASST3/autoconf.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
-  machine/setjmp.h ../../compile/ASST0/autoconf.h
+  machine/setjmp.h ../../compile/ASST3/autoconf.h

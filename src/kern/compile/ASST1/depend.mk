@@ -98,6 +98,14 @@ pseudorand_att.o: ../../dev/generic/pseudorand_att.c \
   ../../include/types.h machine/types.h ../../include/kern/types.h \
   ../../include/lib.h machine/setjmp.h ../../dev/generic/random.h \
   ../../include/dev.h ../../dev/generic/pseudorand.h autoconf.h
+catlock.o: ../../asst1/catlock.c ../../include/types.h machine/types.h \
+  ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
+  ../../include/test.h ../../include/thread.h machine/pcb.h \
+  ../../include/synch.h
+catsem.o: ../../asst1/catsem.c ../../include/types.h machine/types.h \
+  ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
+  ../../include/test.h ../../include/thread.h machine/pcb.h \
+  ../../include/synch.h
 sfs_vnode.o: ../../fs/sfs/sfs_vnode.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
   machine/setjmp.h ../../include/synch.h ../../include/array.h \
@@ -117,6 +125,10 @@ dumbvm.o: ../../arch/mips/mips/dumbvm.c ../../include/types.h \
   machine/pcb.h ../../include/curthread.h ../../include/addrspace.h \
   ../../include/vm.h machine/vm.h opt-dumbvm.h machine/spl.h \
   machine/tlb.h
+stoplight.o: ../../asst1/stoplight.c ../../include/types.h \
+  machine/types.h ../../include/kern/types.h ../../include/lib.h \
+  machine/setjmp.h ../../include/test.h ../../include/thread.h \
+  machine/pcb.h
 sfs_io.o: ../../fs/sfs/sfs_io.c ../../include/types.h machine/types.h \
   ../../include/kern/types.h ../../include/kern/errno.h \
   ../../include/lib.h machine/setjmp.h ../../include/uio.h \
@@ -343,6 +355,6 @@ fstest.o: ../../test/fstest.c ../../include/types.h machine/types.h \
   ../../include/synch.h ../../include/fs.h ../../include/vnode.h \
   ../../include/vfs.h ../../include/uio.h ../../include/test.h \
   ../../include/thread.h machine/pcb.h
-autoconf.o: ../../compile/ASST0/autoconf.c ../../include/types.h \
+autoconf.o: ../../compile/ASST1/autoconf.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
-  machine/setjmp.h ../../compile/ASST0/autoconf.h
+  machine/setjmp.h ../../compile/ASST1/autoconf.h

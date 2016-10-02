@@ -18,8 +18,7 @@
 #include <lib.h>
 #include <test.h>
 #include <thread.h>
-
-
+#include <synch.h>
 /*
  * 
  * Constants
@@ -44,7 +43,15 @@
 
 #define NMICE 2
 
+/*
+ *
+ * Global variables
+ * 
+ */
 
+static volatile int num_cats_eating, num_mice_eating, cats_waiting, mice_waiting, turn, animals_full, cats_allowed, mice_allowed;
+static struct semaphore *lobby, *done, *bowls, *cats_done, *mice_done; 
+static struct lock *mutex, *m_lock, *c_lock;
 /*
  * 
  * Function Definitions
@@ -66,21 +73,67 @@
  *      Write and comment this function using semaphores.
  *
  */
-
 static
 void
 catsem(void * unusedpointer, 
        unsigned long catnumber)
-{
-        /*
-         * Avoid unused variable warnings.
-         */
-
-        (void) unusedpointer;
-        (void) catnumber;
+{	
+	//c_lock keeps cats from skipping over the wait it's not their turn
+	//kprintf("Cat %lu waiting for c_lock\n", catnumber);
+	lock_acquire(c_lock);
+	//kprintf("Cat %lu has c_lock\n", catnumber);
+	lock_acquire(mutex);
+	cats_waiting++;
+	if (cats_waiting == 1) { //if we're the first cat
+		cats_allowed = 2;
+		lock_release(mutex);
+		//kprintf("Cat %lu waiting outside kitchen\n", catnumber);
+		P(mice_done);
+		lock_acquire(mutex);
+	} else{
+		//new code
+		if(cats_allowed == 0) {
+			lock_release(mutex);
+			//kprintf("Cat %lu waiting outside kitchen\n", catnumber);
+			P(mice_done); //wait until mice are done with their turn
+			lock_acquire(mutex);
+		}
+	}
+	//kprintf("Cat %lu releasing c_lock\n", catnumber);
+	kprintf("Cat %lu enters lobby\n", catnumber);
+	lock_release(c_lock);
+	cats_allowed--;
+	/* Eating */
+	lock_release(mutex);
+	P(bowls);
+	kprintf("Cat %lu enters kitchen and is eating\n", catnumber);
+	clocksleep(1);
+	kprintf("Cat %lu is done eating and leaves kitchen\n", catnumber, catnumber);
+	V(bowls);
+	lock_acquire(mutex);
+	animals_full++;
+	cats_waiting--;
+	//last cat in the kitchen
+	//move full check priority up. Also functions as a psuedo "if none waiting" check.
+	if (animals_full == NMICE + NCATS) {
+		lock_release(mutex);
+		V(done);
+	} else {
+		if (cats_waiting == 0 && mice_waiting != 0) {
+			lock_release(mutex);
+			V(cats_done);
+		} else if ( cats_waiting != 0 && mice_waiting == 0) {
+			cats_allowed = 2;
+			lock_release(mutex);
+			V(mice_done);
+		} else {
+			//at least 1 of each waiting. Let another cat in to fulfill quota
+			lock_release(mutex);
+			V(cats_done);
+		}
+	}
 }
         
-
 /*
  * mousesem()
  *
@@ -102,14 +155,60 @@ void
 mousesem(void * unusedpointer, 
          unsigned long mousenumber)
 {
-        /*
-         * Avoid unused variable warnings.
-         */
-
-        (void) unusedpointer;
-        (void) mousenumber;
+	//m_lock keeps mice from skipping over the wait if it's not their turn
+	//kprintf("Mouse %lu waiting for m_lock\n", mousenumber);
+	lock_acquire(m_lock);
+	//kprintf("Mouse %lu has m_lock\n", mousenumber);
+	lock_acquire(mutex);
+	mice_waiting++;
+	if (mice_waiting == 1) {
+		mice_allowed = 2;
+		lock_release(mutex);
+		//kprintf("Mouse %lu waiting outside kitchen\n", mousenumber);
+		P(cats_done);
+		lock_acquire(mutex);
+	} else {
+		if(mice_allowed == 0){
+			lock_release(mutex);
+			//kprintf("Mouse %lu waiting outside kitchen\n", mousenumber);
+			P(cats_done);
+			lock_acquire(mutex);
+		}
+	}
+	//kprintf("Mouse %lu releasing m_lock\n", mousenumber);
+	kprintf("Mouse %lu enters lobby\n", mousenumber);
+	lock_release(m_lock);
+	mice_allowed--;
+	/* Eating */
+	lock_release(mutex);
+	P(bowls);
+	kprintf("Mouse %lu enters kitchen and is eating\n", mousenumber);
+	clocksleep(1);
+	kprintf("Mouse %lu is done eating and leaves kitchen\n", mousenumber, mousenumber);
+	V(bowls);
+	lock_acquire(mutex);
+	animals_full++;
+	mice_waiting--;
+	//last mouse
+	//moved full check priority up. Also functions as a psuedo "if none waiting" check.
+	if (animals_full == NMICE + NCATS) {
+		lock_release(mutex);
+		V(done);
+	} else {
+		if (mice_waiting == 0 && cats_waiting != 0) {
+			lock_release(mutex);
+			V(mice_done);
+		} else if(mice_waiting != 0 && cats_waiting == 0) {
+			mice_allowed = 2;
+			lock_release(mutex);
+			V(cats_done);
+		} else { 
+			//at least 1 of each waiting. Let another mouse in to fulfill quota.
+			lock_release(mutex);
+			V(cats_done);
+		}
+	}
 }
-
 
 /*
  * catmousesem()
@@ -132,6 +231,18 @@ catmousesem(int nargs,
 {
         int index, error;
    
+	cats_allowed = 2;
+	cats_waiting = 0;
+	cats_waiting = 0;
+	mice_waiting = 0;
+	animals_full = 0;
+	done = sem_create("done", 0);
+	bowls = sem_create("bowls", NFOODBOWLS);
+	cats_done = sem_create("cats_done", 0);
+	mice_done = sem_create("mice_done", 1);
+	mutex = lock_create("mutex");
+	m_lock = lock_create("m_lock");
+	c_lock = lock_create("c_lock");
         /*
          * Avoid unused variable warnings.
          */
@@ -188,7 +299,7 @@ catmousesem(int nargs,
                               );
                 }
         }
-
+	P(done);
         return 0;
 }
 

@@ -98,18 +98,11 @@ pseudorand_att.o: ../../dev/generic/pseudorand_att.c \
   ../../include/types.h machine/types.h ../../include/kern/types.h \
   ../../include/lib.h machine/setjmp.h ../../dev/generic/random.h \
   ../../include/dev.h ../../dev/generic/pseudorand.h autoconf.h
-catlock.o: ../../asst1/catlock.c ../../include/types.h machine/types.h \
-  ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
-  ../../include/test.h ../../include/thread.h machine/pcb.h \
-  ../../include/kern/limits.h ../../include/kern/file_syscalls.h \
-  ../../include/synch.h ../../include/kern/proc_syscalls.h \
-  ../../arch/mips/include/trapframe.h
-catsem.o: ../../asst1/catsem.c ../../include/types.h machine/types.h \
-  ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
-  ../../include/test.h ../../include/thread.h machine/pcb.h \
-  ../../include/kern/limits.h ../../include/kern/file_syscalls.h \
-  ../../include/synch.h ../../include/kern/proc_syscalls.h \
-  ../../arch/mips/include/trapframe.h
+addrspace.o: ../../vm/addrspace.c ../../include/types.h machine/types.h \
+  ../../include/kern/types.h ../../include/kern/errno.h \
+  ../../include/lib.h machine/setjmp.h ../../include/addrspace.h \
+  ../../include/vm.h machine/vm.h opt-dumbvm.h machine/spl.h \
+  machine/tlb.h
 sfs_vnode.o: ../../fs/sfs/sfs_vnode.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
   machine/setjmp.h ../../include/synch.h ../../include/array.h \
@@ -131,12 +124,6 @@ dumbvm.o: ../../arch/mips/mips/dumbvm.c ../../include/types.h \
   ../../include/kern/proc_syscalls.h ../../arch/mips/include/trapframe.h \
   ../../include/curthread.h ../../include/addrspace.h ../../include/vm.h \
   machine/vm.h opt-dumbvm.h machine/spl.h machine/tlb.h
-stoplight.o: ../../asst1/stoplight.c ../../include/types.h \
-  machine/types.h ../../include/kern/types.h ../../include/lib.h \
-  machine/setjmp.h ../../include/test.h ../../include/thread.h \
-  machine/pcb.h ../../include/kern/limits.h \
-  ../../include/kern/file_syscalls.h ../../include/synch.h \
-  ../../include/kern/proc_syscalls.h ../../arch/mips/include/trapframe.h
 sfs_io.o: ../../fs/sfs/sfs_io.c ../../include/types.h machine/types.h \
   ../../include/kern/types.h ../../include/kern/errno.h \
   ../../include/lib.h machine/setjmp.h ../../include/uio.h \
@@ -387,7 +374,7 @@ proc_syscalls.o: ../../userprog/proc_syscalls.c \
   ../../include/kern/errno.h ../../include/../include/synch.h \
   ../../include/addrspace.h ../../include/vm.h machine/vm.h opt-dumbvm.h \
   ../../include/vfs.h ../../include/syscall.h ../../include/test.h \
-  ../../include/../arch/mips/include/spl.h
+  ../../include/../arch/mips/include/spl.h machine/spl.h
 arraytest.o: ../../test/arraytest.c ../../include/types.h machine/types.h \
   ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
   ../../include/array.h ../../include/test.h
@@ -430,6 +417,6 @@ fstest.o: ../../test/fstest.c ../../include/types.h machine/types.h \
   ../../include/thread.h machine/pcb.h ../../include/kern/limits.h \
   ../../include/kern/file_syscalls.h ../../include/kern/proc_syscalls.h \
   ../../arch/mips/include/trapframe.h
-autoconf.o: ../../compile/ASST1/autoconf.c ../../include/types.h \
+autoconf.o: ../../compile/ASST2/autoconf.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
-  machine/setjmp.h ../../compile/ASST1/autoconf.h
+  machine/setjmp.h ../../compile/ASST2/autoconf.h

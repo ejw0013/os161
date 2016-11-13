@@ -6,7 +6,8 @@
 #include <machine/trapframe.h>
 #include <kern/callno.h>
 #include <syscall.h>
-
+#include <kern/file_syscalls.h>
+#include <kern/proc_syscalls.h>
 
 /*
  * System call handler.
@@ -51,8 +52,9 @@ mips_syscall(struct trapframe *tf)
 	int callno;
 	int32_t retval;
 	int err;
-
+	off_t pos;
 	assert(curspl==0);
+	int whence;
 
 	callno = tf->tf_v0;
 
@@ -68,16 +70,54 @@ mips_syscall(struct trapframe *tf)
 	retval = 0;
 
 	switch (callno) {
-	    case SYS_reboot:
-		err = sys_reboot(tf->tf_a0);
-		break;
-
-	    /* Add stuff here */
- 
-	    default:
-		kprintf("Unknown syscall %d\n", callno);
-		err = ENOSYS;
-		break;
+		case SYS_reboot:
+			err = sys_reboot(tf->tf_a0);
+			break;
+		case SYS_getpid:
+			err = sys_getpid((pid_t*) &tf->tf_a0);
+			break;
+		case SYS__exit:
+			err = sys__exit(tf->tf_a0);
+			break;
+		case SYS_waitpid:
+			err = sys_waitpid((pid_t) tf->tf_a0, (int*) tf->tf_a1, tf->tf_a2, &retval);
+			break;
+		case SYS_execv:
+			err = sys_execv((const char*) tf->tf_a0, (char**) tf->tf_a1);
+			break;
+		case SYS_fork:
+			err = sys_fork(tf, &retval);
+			break;
+		case SYS_open:
+			err = sys_open((char*)tf->tf_a0, tf->tf_a1, (mode_t) tf->tf_a2, &retval);
+			break;
+		case SYS_read:
+			err = sys_read(tf->tf_a0, (void*) tf->tf_a1, (size_t) tf->tf_a2);
+			break;
+		case SYS_write:
+			err = sys_write(tf->tf_a0, (void*) tf->tf_a1, (size_t) tf->tf_a2);
+			break;
+		case SYS_lseek:
+			pos = ((off_t)tf->tf_a2 << 32) | tf->tf_a3;
+			err = copyin((const_userptr_t)tf->tf_sp + 16, &whence, sizeof(int));
+			if(err) {
+				break;
+			}
+			err = sys_lseek(tf->tf_a0, pos, whence, &retval);
+			if(!err) {
+				tf->tf_v1 = retval;
+			}
+			break;
+		case SYS_close:
+			err = sys_close(tf->tf_a0, &retval);
+			break;	
+		case SYS_dup2:
+			err = sys_dup2(tf->tf_a0, tf->tf_a1, &retval);
+			break;
+		default:
+			kprintf("Unknown syscall %d\n", callno);
+			err = ENOSYS;
+			break;
 	}
 
 

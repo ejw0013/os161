@@ -12,6 +12,24 @@ struct vnode;
  *
  * You write this.
  */
+struct page_table_entry {
+	vaddr_t vaddr;
+	paddr_t paddr;
+	int permissions;
+	
+	struct page_table_entry *next;
+	struct page_table_entry *last;
+};
+
+struct regionlist {
+	
+	vaddr_t vbase;
+	paddr_t pbase;
+	size_t npages;
+	int permissions;
+	struct regionlist *next;
+	struct regionlist *last;
+};
 
 struct addrspace {
 #if OPT_DUMBVM
@@ -23,7 +41,12 @@ struct addrspace {
 	size_t as_npages2;
 	paddr_t as_stackpbase;
 #else
-	/* Put stuff here for your VM system */
+	struct page_table_entry* pages;
+	struct page_table_entry* heap;
+	struct page_table_entry* stack;
+	struct regionlist* regions;
+	vaddr_t heap_start;
+	vaddr_t heap_end;	
 #endif
 };
 

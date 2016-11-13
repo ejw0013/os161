@@ -27,4 +27,8 @@ struct __userptr { char _dummy; };
 typedef struct __userptr *userptr_t;
 typedef const struct __userptr *const_userptr_t;
 
+#define bool int
+#define true 1
+#define false 0
+
 #endif /* _TYPES_H_ */

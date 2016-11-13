@@ -16,6 +16,7 @@
  */
 
 /* under dumbvm, always have 48k of user stack */
+
 #define DUMBVM_STACKPAGES    12
 
 void
@@ -278,38 +279,30 @@ int
 as_copy(struct addrspace *old, struct addrspace **ret)
 {
 	struct addrspace *new;
-
 	new = as_create();
 	if (new==NULL) {
 		return ENOMEM;
 	}
-
 	new->as_vbase1 = old->as_vbase1;
 	new->as_npages1 = old->as_npages1;
 	new->as_vbase2 = old->as_vbase2;
 	new->as_npages2 = old->as_npages2;
-
 	if (as_prepare_load(new)) {
 		as_destroy(new);
 		return ENOMEM;
 	}
-
 	assert(new->as_pbase1 != 0);
 	assert(new->as_pbase2 != 0);
 	assert(new->as_stackpbase != 0);
-
 	memmove((void *)PADDR_TO_KVADDR(new->as_pbase1),
 		(const void *)PADDR_TO_KVADDR(old->as_pbase1),
 		old->as_npages1*PAGE_SIZE);
-
 	memmove((void *)PADDR_TO_KVADDR(new->as_pbase2),
 		(const void *)PADDR_TO_KVADDR(old->as_pbase2),
 		old->as_npages2*PAGE_SIZE);
-
 	memmove((void *)PADDR_TO_KVADDR(new->as_stackpbase),
 		(const void *)PADDR_TO_KVADDR(old->as_stackpbase),
 		DUMBVM_STACKPAGES*PAGE_SIZE);
-	
 	*ret = new;
 	return 0;
 }

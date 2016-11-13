@@ -99,7 +99,7 @@ scheduler(void)
 	// still works. However, the amount of text printed is
 	// prohibitive.
 	// 
-	//print_run_queue();
+	// print_run_queue();
 	
 	return q_remhead(runqueue);
 }

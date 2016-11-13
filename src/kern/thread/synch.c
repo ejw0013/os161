@@ -237,7 +237,7 @@ cv_broadcast(struct cv *cv, struct lock *lock)
 	assert(lock != NULL);
 	int spl = splhigh();
 	if (!lock_do_i_hold(lock)) {
-		panic("im not holding the lock %p at %s at %p. \n",
+		panic("im not holding the lock %s %p at %s at %p. \n",
 			cv->name, cv, lock->name, lock);	
 	}
 	int i;

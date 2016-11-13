@@ -13,6 +13,7 @@
 #include <addrspace.h>
 #include <vnode.h>
 #include "opt-synchprobs.h"
+#include <kern/proc_syscalls.h>
 
 /* States a thread can be in. */
 typedef enum {
@@ -52,16 +53,26 @@ thread_create(const char *name)
 		kfree(thread);
 		return NULL;
 	}
+	// TODO: Could hardcode 1, 2, 3 has stdin, out, and err here.
 	thread->t_sleepaddr = NULL;
 	thread->t_stack = NULL;
 	
 	thread->t_vmspace = NULL;
 
 	thread->t_cwd = NULL;
-	
-	// If you add things to the thread structure, be sure to initialize
-	// them here.
-	
+
+	int i;	
+	for(i = 0;i < MAX_FILES; i++) {
+		thread->fdtable[i] = NULL;
+	}	
+
+	pid_t temp_id = give_pid();
+	if(temp_id > PID_MAX) {
+		return NULL;
+	}
+	thread->pid = temp_id;
+	init_process(thread, temp_id);
+	thread->ppid = 2;
 	return thread;
 }
 
@@ -84,10 +95,10 @@ thread_destroy(struct thread *thread)
 	assert(thread->t_vmspace==NULL);
 	assert(thread->t_cwd==NULL);
 	
-	if (thread->t_stack) {
+	if (thread->t_stack != NULL) {
 		kfree(thread->t_stack);
 	}
-
+	
 	kfree(thread->t_name);
 	kfree(thread);
 }
@@ -204,6 +215,8 @@ thread_bootstrap(void)
 
 	/* Number of threads starts at 1 */
 	numthreads = 1;
+	
+	execv_lock = lock_create("lock for execv");
 
 	/* Done */
 	return me;
@@ -240,12 +253,14 @@ thread_fork(const char *name,
 	/* Allocate a thread */
 	newguy = thread_create(name);
 	if (newguy==NULL) {
+		kprintf("early return\n");
 		return ENOMEM;
 	}
 
 	/* Allocate a stack */
 	newguy->t_stack = kmalloc(STACK_SIZE);
 	if (newguy->t_stack==NULL) {
+		kprintf("early return\n");
 		kfree(newguy->t_name);
 		kfree(newguy);
 		return ENOMEM;
@@ -257,18 +272,23 @@ thread_fork(const char *name,
 	newguy->t_stack[2] = 0xda;
 	newguy->t_stack[3] = 0x33;
 
-	/* Inherit the current directory */
+	int i;
+	for (i = 0; i < MAX_FILES; i++) {
+		if(curthread->fdtable[i] != NULL) {
+			curthread->fdtable[i]->refcount = curthread->fdtable[i]->refcount + 1;
+			newguy->fdtable[i] = (struct file_info*) kmalloc(sizeof(struct file_info));
+			memcpy(newguy->fdtable[i], curthread->fdtable[i], sizeof(struct file_info));
+		}
+	}
+	newguy->ppid = curthread->pid;
+	changeppid(newguy->pid, curthread->pid);
+	
 	if (curthread->t_cwd != NULL) {
 		VOP_INCREF(curthread->t_cwd);
 		newguy->t_cwd = curthread->t_cwd;
 	}
-
-	/* Set up the pcb (this arranges for func to be called) */
-	md_initpcb(&newguy->t_pcb, newguy->t_stack, data1, data2, func);
-
 	/* Interrupts off for atomicity */
 	s = splhigh();
-
 	/*
 	 * Make sure our data structures have enough space, so we won't
 	 * run out later at an inconvenient time.
@@ -287,6 +307,9 @@ thread_fork(const char *name,
 	if (result) {
 		goto fail;
 	}
+
+	/* Set up the pcb (this arranges for func to be called) */
+	md_initpcb(&newguy->t_pcb, newguy->t_stack, data1, data2, func);
 
 	/* Make the new thread runnable */
 	result = make_runnable(newguy);
@@ -442,7 +465,11 @@ thread_exit(void)
 		assert(curthread->t_stack[3] == (char)0x33);
 	}
 
-	splhigh();
+
+	if (curthread->t_cwd) {
+		VOP_DECREF(curthread->t_cwd);
+		curthread->t_cwd = NULL;
+	}
 
 	if (curthread->t_vmspace) {
 		/*
@@ -451,15 +478,12 @@ thread_exit(void)
 		 */
 		struct addrspace *as = curthread->t_vmspace;
 		curthread->t_vmspace = NULL;
+		as_activate(NULL);
 		as_destroy(as);
 	}
 
-	if (curthread->t_cwd) {
-		VOP_DECREF(curthread->t_cwd);
-		curthread->t_cwd = NULL;
-	}
-
 	assert(numthreads>0);
+	splhigh();
 	numthreads--;
 	mi_switch(S_ZOMB);
 

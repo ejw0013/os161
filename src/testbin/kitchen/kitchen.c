@@ -8,7 +8,7 @@
 
 #include <unistd.h>
 #include <err.h>
-
+#include <stdio.h>
 static char *sargv[2] = { (char *)"sink", NULL };
 
 #define MAXPROCS  6
@@ -18,17 +18,21 @@ static
 void
 sink(void)
 {
+	printf("asdf\n");
 	int pid = fork();
 	switch (pid) {
 	    case -1:
 		err(1, "fork");
+		printf("-1\n");
 	    case 0:
 		/* child */
 		execv("/testbin/sink", sargv);
 		err(1, "/testbin/sink");
+		printf("0\n");
 	    default:
 		/* parent */
 		pids[npids++] = pid;
+		printf("default\n");
 		break;
 	}
 }
@@ -52,6 +56,7 @@ waitall(void)
 int
 main(void)
 {
+	printf("here\n");
 	sink();
 	sink();
 	sink();

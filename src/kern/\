@@ -1,0 +1,64 @@
+#include <lib.h>
+#include <synch.h>
+
+#define MAX_FILES, 256
+#define FREE 0
+#define TAKEN 1
+
+/**
+ * FileTable describes which file descriptors are taken and not taken.
+ */
+struct FileTable {
+	unsigned char taken_count;
+	unsigned char taken[MAX_FILES];
+};
+
+/**
+ * _file_table is a global instance of the FileTable.
+ */
+static struct FileTable* _file_table;
+static struct lock* _table_lock;
+lock_create(_table_lock, "_table_lock");
+
+/**
+ * _assert_bad_fd asserts that the fd is in the correct domain.
+ */
+void _assert_bad_fd(int fd);
+
+/** 
+ * fd_is_taken returns a non-zero value iff the file represented by the given file
+ * descriptor is taken.
+ */
+int fd_is_taken(int fd);
+
+/**
+ * fd_take returns a zero value iff the file represented given by the file is available
+ * to be taken. Returns non-zero value if it's not available.
+ */
+int fd_take(int fd);
+/**
+ * fd_release returns a zero value iff the file represented given by the file is currently
+ * taken. Returns non-zero value if it's not available
+ */
+int fd_release(int fd);
+
+/**
+ * taken_file_count returns the number of taken files.
+ */
+unsigned char taken_file_count();
+
+/**
+ * available_file_count returns the number of available files.
+ */
+unsigned char available_file_count();
+
+/*
+struct File {
+	// Rest of file informtion.
+
+	unsigned char offset;
+
+	struct File* head;
+	struct File* next;
+};
+*/

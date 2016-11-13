@@ -114,6 +114,11 @@ pseudorand_att.o: ${S}/dev/generic/pseudorand_att.c
 SRCS+=${S}/dev/generic/pseudorand_att.c
 OBJS+=pseudorand_att.o
 
+addrspace.o: ${S}/vm/addrspace.c
+	${COMPILE.c} ${S}/vm/addrspace.c
+SRCS+=${S}/vm/addrspace.c
+OBJS+=addrspace.o
+
 sfs_vnode.o: ${S}/fs/sfs/sfs_vnode.c
 	${COMPILE.c} ${S}/fs/sfs/sfs_vnode.c
 SRCS+=${S}/fs/sfs/sfs_vnode.c
@@ -404,10 +409,15 @@ uio.o: ${S}/userprog/uio.c
 SRCS+=${S}/userprog/uio.c
 OBJS+=uio.o
 
-file.o: ${S}/userprog/file.c
-	${COMPILE.c} ${S}/userprog/file.c
-SRCS+=${S}/userprog/file.c
-OBJS+=file.o
+file_syscalls.o: ${S}/userprog/file_syscalls.c
+	${COMPILE.c} ${S}/userprog/file_syscalls.c
+SRCS+=${S}/userprog/file_syscalls.c
+OBJS+=file_syscalls.o
+
+proc_syscalls.o: ${S}/userprog/proc_syscalls.c
+	${COMPILE.c} ${S}/userprog/proc_syscalls.c
+SRCS+=${S}/userprog/proc_syscalls.c
+OBJS+=proc_syscalls.o
 
 arraytest.o: ${S}/test/arraytest.c
 	${COMPILE.c} ${S}/test/arraytest.c
@@ -449,8 +459,8 @@ fstest.o: ${S}/test/fstest.c
 SRCS+=${S}/test/fstest.c
 OBJS+=fstest.o
 
-autoconf.o: ${S}/compile/ASST0/autoconf.c
-	${COMPILE.c} ${S}/compile/ASST0/autoconf.c
-SRCS+=${S}/compile/ASST0/autoconf.c
+autoconf.o: ${S}/compile/ASST2/autoconf.c
+	${COMPILE.c} ${S}/compile/ASST2/autoconf.c
+SRCS+=${S}/compile/ASST2/autoconf.c
 OBJS+=autoconf.o
 

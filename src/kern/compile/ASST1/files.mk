@@ -419,6 +419,16 @@ uio.o: ${S}/userprog/uio.c
 SRCS+=${S}/userprog/uio.c
 OBJS+=uio.o
 
+file_syscalls.o: ${S}/userprog/file_syscalls.c
+	${COMPILE.c} ${S}/userprog/file_syscalls.c
+SRCS+=${S}/userprog/file_syscalls.c
+OBJS+=file_syscalls.o
+
+proc_syscalls.o: ${S}/userprog/proc_syscalls.c
+	${COMPILE.c} ${S}/userprog/proc_syscalls.c
+SRCS+=${S}/userprog/proc_syscalls.c
+OBJS+=proc_syscalls.o
+
 arraytest.o: ${S}/test/arraytest.c
 	${COMPILE.c} ${S}/test/arraytest.c
 SRCS+=${S}/test/arraytest.c

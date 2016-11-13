@@ -28,8 +28,7 @@ hardclock(void)
 		lbolt_counter = 0;
 		thread_wakeup(&lbolt);
 	}
-
-	thread_yield();
+	// thread_yield();
 }
 
 /*

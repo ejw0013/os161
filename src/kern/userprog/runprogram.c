@@ -14,7 +14,7 @@
 #include <vm.h>
 #include <vfs.h>
 #include <test.h>
-
+#include <kern/file_syscalls.h>
 /*
  * Load program "progname" and start running it in usermode.
  * Does not return except on error.
@@ -22,11 +22,26 @@
  * Calls vfs_open on progname and thus may destroy it.
  */
 int
-runprogram(char *progname)
+runprogram(char *progname, char** args)
 {
 	struct vnode *v;
 	vaddr_t entrypoint, stackptr;
-	int result;
+	int result, len;
+	int index = 0;
+
+	/*STD_IN/OUT/ERR are not intialized */
+	if(curthread->fdtable[0] == NULL) {
+		result = filetable_init();
+		if(result) {
+			return result;
+		}
+	}
+
+	while(args[index] != NULL) {
+		index++;
+	}
+	char** allargs = (char**) kmalloc(sizeof(char*) *index);
+	index = 0;
 
 	/* Open the file. */
 	result = vfs_open(progname, O_RDONLY, &v);
@@ -63,6 +78,49 @@ runprogram(char *progname)
 	if (result) {
 		/* thread_exit destroys curthread->t_vmspace */
 		return result;
+	}
+
+	while (args[index] != NULL) {
+		char* arg;
+		len = strlen(args[index]) + 1;
+		
+		int original_len = len;
+		if (len % 4 != 0) {
+			len = len + (4 - len % 4);
+		}
+
+		arg = kmalloc(sizeof(len));
+		arg = kstrdup(args[index]);
+		int i;
+		for (i = 0; i < len; i++) {
+ 			if (i > original_len) arg[i] = '\0';
+			else arg[i] = args[index][i];
+
+		}
+		stackptr -= len;
+		result = copyout((const void*) arg, (userptr_t)stackptr, (size_t) len);
+		if (result) {
+			kprintf("Copyout failed in runprogram %d\n", result);
+			return result;
+		}
+		
+		kfree(arg);
+		allargs[index] = (char*) stackptr;
+		index++;
+	}
+	
+	if (args[index] == NULL) {
+		stackptr -= 4 * sizeof(char);
+	}
+	
+	int i;	
+	for (i = (index - 1); i >= 0; i--) {
+		stackptr = stackptr - sizeof(char*);
+		result = copyout((const void*)(allargs + i), (userptr_t)stackptr, (sizeof(char*)));
+		if (result) {
+			kprintf("Copyout failed in rungram, result %d, arr index %d\n", result, i);
+			return result;
+		}
 	}
 
 	/* Warp to user mode. */

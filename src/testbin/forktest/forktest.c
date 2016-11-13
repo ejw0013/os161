@@ -108,9 +108,7 @@ test(int nowait)
 	 * It is unrolled to encourage gcc to registerize the pids,
 	 * to prevent wait/exit problems if fork corrupts memory.
 	 */
-
 	pid0 = dofork();
-	putchar('0');
 	check();
 	pid1 = dofork();
 	putchar('1');

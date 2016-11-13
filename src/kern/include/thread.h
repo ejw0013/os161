@@ -6,8 +6,11 @@
  */
 
 /* Get machine-dependent stuff */
+#include <types.h>
 #include <machine/pcb.h>
-
+#include <kern/limits.h>
+#include <kern/file_syscalls.h>
+#include <kern/proc_syscalls.h>
 
 struct addrspace;
 
@@ -20,7 +23,9 @@ struct thread {
 	char *t_name;
 	const void *t_sleepaddr;
 	char *t_stack;
-	
+	pid_t pid;
+	pid_t ppid;
+	struct file_info* fdtable[MAX_FILES];
 	/**********************************************************/
 	/* Public thread members - can be used by other code      */
 	/**********************************************************/
@@ -41,6 +46,8 @@ struct thread {
 
 /* Call once during startup to allocate data structures. */
 struct thread *thread_bootstrap(void);
+
+struct lock* execv_lock;	
 
 /* Call during panic to stop other threads in their tracks */
 void thread_panic(void);

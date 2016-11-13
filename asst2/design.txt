@@ -1,0 +1,113 @@
+COMP3500 Project 4 Design Document
+Group 9 Will O'Rourke, Cameron Schaerfl, Erich Wu
+
+High Level Description:
+
+We approached this assignment by trying to build things first and then
+debugging along the way. We first started by looking and the process system
+calls and then proceeded to implement the data structures we needed such as
+an open file table for each thread and and a linked list for processes.
+
+The open file table was very concise and worked well. The linked list for 
+processes was a quick and lazy solution when another table would have worked
+well. This led us to our major issues in finishing this project.
+
+As we continued to implement functions we learned we had to handle a large
+amount of cases such as making sure STDIN, STDOUT, and STDERR were all
+initialized in all file tables. 
+
+Detailed Description:
+
+File calls: 
+
+open: this opens a file by calling vfs_open to get a vnode representing
+the loaded location of a file. Other house-keeping tasks include setting
+the fields correctly wihtin the file_info struct of that file descriptor
+index in the thread's file table. Appropriate errors are caught and
+propagated.
+
+read: this reads a file by calling vop_read to move file data to thread
+address space. Appropriate errors are caught and propagated.
+
+write: this writes a file by calling vop_write to move user address-space
+info to the vnode, writing the file. Appropriate errors are caught and
+propagated.
+
+lseek: this seeks to an offset location within a file using vop_stat and 
+vop_tryseek. Appropriate errors are caught and propogated.
+
+close: this deallocates the file_info struct at that file descriptor if 
+there is only 1 reference to it. Otherwise, it just decrements the 
+reference count. Appropriate errors are caught and propogated.
+
+dup2: this duplicates a file entry to another file entry within the 
+same file. Appropriate errors are caught and propogated.
+
+Process Calls:
+
+getpid: simple function, but required the implementation of the linked
+list to track used and available PIDs. This data structure is described
+in more detail later.
+
+fork: this assigned a new pid to a child thread and also copies the
+parent address space and file tbale. By searching through our pid 
+linked list, it finds the new pid to pass to thread_fork. Appropriate
+errors are caught and propogated.
+
+execv: this executes the given program name with the given arguments,
+using vfs_open to read the program file. Appropriate errors are caught
+and propogated.
+
+waitpid: this searches through our linked list for the specified pid
+and waits until it has exited, destroying the process with that pid 
+afterwards to be reclaimed by a new process. Appropriate errors are
+caught and propogated.
+
+_exit: this finds the process we're looking for and destroys it. 
+Ending by calling thread exit on the current thread.
+
+
+Pros and Cons:
+
+The pros of the linked-list base implementation are summed up by the fact that
+its implementation was the easiest. While laziness may be a contributing
+factor, another motivation was that by minimizing time spent implementing
+trivial data structures, we were able to maximize time spent learning the all
+important algorithms meant to be learned during the project.
+
+The cons are comprised of the time complexity an iterative search for any
+desired value adds, instead of a constant time look-up. Also, the pointer
+indirection in a linked list as opposed to contiguous memory creates
+significant overhead.
+
+Alternatives:
+
+Instead of linked lists, many areas could have used hash tables. These are
+almost unequivocally better than the linked lists in all areas, except ease of
+implementation. Seeing as this is an undergraduate operating systems project,
+the easier solution was chosen. The hash table implementation would have been
+more scalable as identifiers could have been retrieved in constant time,
+instead of being iterated to.
+
+We also chose a first-come-first-serve (FCFS) scheduler to replace the
+round-robin scheduler for similar reasons. Upon noticing the round-robin
+scheduler was implemented with thread-yield in a separate function, and that
+the round-robins time slicing was complicating debugging, simply removing
+the random yield in hardclock was too desirable. This achieved the ends of
+simplifying debugging so the rest of the project could be better and switching
+to a "different" scheduler implementation.
+
+Problems:
+
+We noticed many parts of this project weren't covered until much closer to the
+projects due date. The project also had many components which were necessary
+to be coded but weren't explained in class. These included having STDIN,
+STDOUT, and STDERR open for each file table at initialization. Much time was
+spent on bugs related to these issues with little gain. Also, the project
+description was so large and verbose that it was hard to find any useful
+information it presented. In the end, we did our best to understand the
+required data structures and algorithms and get as much of it working as
+possible. Alas, covering every minute edge-case the tests approached was not
+worth the time nor the understanding. This is the case even with our groups
+biweekly meetings at the beginning of the project and triweekly meetings at
+the end.
